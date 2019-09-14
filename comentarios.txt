@@ -1,0 +1,48 @@
+var cabecera = []
+
+version = cabecera[0:1] siempre valdra 2
+padding = cabecera[2] si hay padding o no
+extension = cabecera[3] si hay extension o no
+countCSRC = cabecera[4:7] cantidad de csrc en la cabecera
+marker = cabecera[8]
+type = cabecera[9:15] tipo de codificacion audio/video
+sequenceNumber = cabecera[16:31] numero de secuencia
+timestamp = cabecera[32:63] timestamp primer octeto de datos
+ssrc = cabecera[64:95] flujo del paquete
+
+ahora van los CSRC, cada uno de 32 bits, pueden ser de 0 a 15
+
+despues puede ir padding, dependiendo si es 0 o 1
+
+el valor de type es dinámico https://tools.ietf.org/id/draft-wu-avtcore-dynamic-pt-usage-02.html
+SDP establece un mapeo dinamico entre el type y la codificacion
+MP3 se llama mpa-robust
+tamaño de frame de 24–72  milisegundos https://en.wikipedia.org/wiki/RTP_audio_video_profile
+
+el padding a 1 indica que hay relleno al final
+el ultimo byte de padding indica el numero de bytes que hay de padding incluyendose a si mismo
+
+si hay extension, tras los datos hay 32 bits
+16 bits de ID del perfil de extension y 16 bits de tamaño extension,
+que indica el tamaño de la extension en unidades de 32 bits, excluyendo la cabecera de extension
+https://en.wikipedia.org/wiki/Real-time_Transport_Protocol
+
+timestamp = empezar en valor aleatorio y no en 0
+sacar la frecuencia del audio
+framelength(ms) = (muestra por frame/ frecuencia muestreo) * 1000
+tiempo en milisegundo por cada frame
+Calculo timestamp de la siguiente manera
+primer paquete => timestamp = X (aleatorio)
+dividir un segundo/framelength y con este resultado
+coger el clock de RTP(8 kHz) y hacer clock/resultado
+si mi valor es 160(si fuesen 20ms) el siguient paquete tendria de
+timestamp = timestamp anterior + 160
+https://stackoverflow.com/questions/24658525/how-to-calculate-the-rtp-timestamp-for-each-packet-in-an-audio-stream
+https://stackoverflow.com/questions/6220660/calculating-the-length-of-mp3-frames-in-milliseconds
+
+otra manera del frimesize http://id3.org/mp3Frame
+FrameSize = 144 * BitRate / SampleRate
+
+formato cabecera mp3 https://www.mp3-tech.org/programmer/frame_header.html
+https://checkmate.gissen.nl/headers.php
+https://www.mp3-tech.org/programmer/docs/mp3_theory.pdf
