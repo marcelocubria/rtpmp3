@@ -42,6 +42,7 @@ https://stackoverflow.com/questions/6220660/calculating-the-length-of-mp3-frames
 
 otra manera del frimesize http://id3.org/mp3Frame
 FrameSize = 144 * BitRate / SampleRate
+porque es 144? es en bytes https://stackoverflow.com/questions/57103676/formula-from-mp3-frame-length
 
 formato cabecera mp3 https://www.mp3-tech.org/programmer/frame_header.html
 https://checkmate.gissen.nl/headers.php
