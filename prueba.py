@@ -29,15 +29,19 @@ def takeFrame(bits, headerIndex):
     if (channel == 11): # Si el canal es mono, 17 bytes de side information
         sideInfo = bits[sideInfoIndex:sideInfoIndex+136];
         mainDataBegins = sideInfo[0:9];
+        frameDataStarts = sideInfoIndex + 136;
     else: # Si no es mono, 32 bytes de side information
         sideInfo = bits[sideInfoIndex:sideInfoIndex+256];
         mainDataBegins = sideInfo[0:9];
+        frameDataStarts = sideInfoIndex + 256;
 
     frameLength = int(144 * 8 * (224000/32000)) # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
+    #sale 8064
 
     # Mi backpointer indica desde donde van mis datos, y el siguiente backpointer
     # indica hasta donde llegan mis datos y empiezan el del siguiente
 
+    intBackpointer = int(mainDataBegins, 2);
     print("backpointer: " + mainDataBegins)
 
     nextHeaderIndex = headerIndex + frameLength;
@@ -65,6 +69,33 @@ def takeFrame(bits, headerIndex):
     print("header 1 :" + header);
     print("header 2 :" + teoriaHeader);"""
 
+    if ((intBackpointer == 0) and (intNextBackpointer == 0)): #donde empiezan y acaban los datos de una trama ADU
+        ADUDataStart = frameDataStarts
+        ADUDataEnd = nextHeaderIndex
+    elif ((intBackpointer == 0) and (intNextBackpointer != 0)):
+        ADUDataStart = frameDataStarts
+        ADUDataEnd = nextHeaderIndex - intNextBackpointer
+    elif ((intBackpointer != 0) and (intNextBackpointer == 0)):
+        ADUDataStart_1 = headerIndex - intBackpointer
+        ADUDataEnd_1 = headerIndex
+        ADUDataStart_2 = frameDataStarts
+        ADUDataEnd_2 = nextHeaderIndex
+    elif ((intBackpointer != 0) and (intNextBackpointer != 0)):
+        ADUDataStart_1 = headerIndex - intBackpointer
+        ADUDataEnd_1 = headerIndex
+        ADUDataStart_2 = frameDataStarts
+        ADUDataEnd_2 = nextHeaderIndex - intNextBackpointer
+
+    AduData = bits[ADUDataStart:ADUDataEnd]
+    #print(str(ADUDataStart) + '---' + str(ADUDataEnd))
+    #print(bits[1200:8660])
+
+    AduFrame = bits[headerIndex:frameDataStarts] #Combino cabeceras con datos de la ADU
+    print(len(AduFrame)) #Debería ser 304 la cabecera
+    AduFrame += AduData
+    print(len(AduFrame))
+    print(headerIndex)
+    print("frame data starts " + str(frameDataStarts))
 
 if __name__== "__main__":
     with open ("archivo.mp3", "rb") as file: # Abro archivo en modo lectura y binario

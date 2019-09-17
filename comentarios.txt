@@ -1,3 +1,6 @@
+https://tools.ietf.org/html/rfc3119
+
+
 var cabecera = []
 
 version = cabecera[0:1] siempre valdra 2
