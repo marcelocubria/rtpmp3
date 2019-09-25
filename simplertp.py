@@ -21,7 +21,7 @@ def SendRtpPacket(number, header, payload, ip, port):
         my_socket.connect((ip, port))
         prueba = packet.tobytes()
         my_socket.send(prueba) #parece enviar todo correctamente comparados primeros 92 bits y ok
-        #print(packet[0:92].bin)
+        print(packet[0:92].bin)
 
 class RtpPayloadMp3: # En principio para MP3
 
