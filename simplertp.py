@@ -11,15 +11,45 @@ def SendRtpPacket(number, header, payload):
         packet.append(BitArray(uint = header.seqNumber, length = 16))
         packet.append(BitArray(uint = header.timestamp, length = 32))
         packet.append(header.ssrc)
-        print(packet.bin)
+        print(len(packet.bin))
         header.next()
-        packet.append(payload)
+        packet.append(BitArray(bin = payload))
+        print(len(packet.bin))
 
-#class RtpPayloadMp3: # En principio para MP3
+class RtpPayloadMp3: # En principio para MP3
 
+    def setAudio(self, filePath):
+        with open (filePath, "rb") as file:
+            bytes = file.read();
+            self.bits = BitArray(bytes).bin;
+            self.headerIndex = self.bits.find('11111111111')
+
+    def takeMp3Frame(self):
+
+        header = self.bits[self.headerIndex:self.headerIndex+32];
+        frameSync = header[0:11];
+        version = header[11:13];
+        layer = header[13:15];
+        protection = header[15];
+        bitrate = header[16:20];
+        sampling = header[20:22];
+        padding = header[22];
+        private = header[23];
+        channel = header[24:26];
+        modeext = header[26:28];
+        copyright = header[28];
+        original = header[29];
+        emphasis = header[30:];
+
+        frameLength = int(144 * 8 * (224000/32000)) # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
+        nextmp3HeaderIndex = self.headerIndex + frameLength;
+        self.frame = self.bits[self.headerIndex:nextmp3HeaderIndex]
+        self.headerIndex = nextmp3HeaderIndex
+        print(len(self.frame))
 
 
 class RtpHeader:
+
     def setHeader(self, version, padFlag, extFlag, cc, marker, payloadType, ssrc):
         self.version = BitArray(uint = version, length = 2)
         self.padFlag = BitArray(uint = padFlag, length = 1)
@@ -63,29 +93,6 @@ class RtpHeader:
     def next(self):
         self.seqNumber += 1;
         self.timestamp += 100; # Calcular siguiente timestamp
-
-
-def takeMp3Frame(bits, mp3headerIndex):
-
-    header = bits[mp3headerIndex:mp3headerIndex+32];
-    frameSync = header[0:11];
-    version = header[11:13];
-    layer = header[13:15];
-    protection = header[15];
-    bitrate = header[16:20];
-    sampling = header[20:22];
-    padding = header[22];
-    private = header[23];
-    channel = header[24:26];
-    modeext = header[26:28];
-    copyright = header[28];
-    original = header[29];
-    emphasis = header[30:];
-
-    frameLength = int(144 * 8 * (224000/32000)) # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
-    nextmp3HeaderIndex = mp3headerIndex + frameLength;
-
-
 
 if __name__== "__main__":
     a = RtpHeader()
