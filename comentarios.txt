@@ -50,3 +50,14 @@ porque es 144? es en bytes https://stackoverflow.com/questions/57103676/formula-
 formato cabecera mp3 https://www.mp3-tech.org/programmer/frame_header.html
 https://checkmate.gissen.nl/headers.php
 https://www.mp3-tech.org/programmer/docs/mp3_theory.pdf
+
+
+
+
+
+
+
+
+
+
+https://tools.ietf.org/html/rfc5219#section-4.4 mp3 en rtp
