@@ -1,6 +1,7 @@
 from bitstring import BitArray
+import socket
 
-def SendRtpPacket(number, header, payload):
+def SendRtpPacket(number, header, payload, ip, port):
     for i in range(number):
         packet = header.version
         packet.append(header.padFlag)
@@ -11,10 +12,16 @@ def SendRtpPacket(number, header, payload):
         packet.append(BitArray(uint = header.seqNumber, length = 16))
         packet.append(BitArray(uint = header.timestamp, length = 32))
         packet.append(header.ssrc)
-        print(len(packet.bin))
+        #print(len(packet.bin))
         header.next()
         packet.append(BitArray(bin = payload))
-        print(len(packet.bin))
+        #print(len(packet.bin))
+
+        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        my_socket.connect((ip, port))
+        prueba = packet.tobytes()
+        my_socket.send(prueba) #parece enviar todo correctamente comparados primeros 92 bits y ok
+        #print(packet[0:92].bin)
 
 class RtpPayloadMp3: # En principio para MP3
 

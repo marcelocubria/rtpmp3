@@ -53,7 +53,7 @@ https://www.mp3-tech.org/programmer/docs/mp3_theory.pdf
 
 
 
-
+COMO USAR UN SOCKET https://docs.python.org/3.7/howto/sockets.html
 
 
 
@@ -61,3 +61,4 @@ https://www.mp3-tech.org/programmer/docs/mp3_theory.pdf
 
 
 https://tools.ietf.org/html/rfc5219#section-4.4 mp3 en rtp
+https://wiki.python.org/moin/HowTo/Sockets SOCKETS

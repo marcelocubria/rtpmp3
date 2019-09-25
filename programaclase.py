@@ -1,4 +1,6 @@
 import simplertp
+import socket
+import sys
 
 if __name__== "__main__":
     a = simplertp.RtpHeader()
@@ -6,5 +8,6 @@ if __name__== "__main__":
     b = simplertp.RtpPayloadMp3()
     b.setAudio('archivo.mp3')
     b.takeMp3Frame()
-
-    simplertp.SendRtpPacket(1, a, b.frame)
+    simplertp.SendRtpPacket(1, a, b.frame, '127.0.0.1', 33332)
+    #b.takeMp3Frame()
+    #simplertp.SendRtpPacket(1, a, b.frame, '127.0.0.1', 33332)
