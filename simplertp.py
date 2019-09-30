@@ -1,7 +1,7 @@
 from bitstring import BitArray
 import socket
 
-def SendRtpPacket(number, header, payload, ip, port):
+def SendRtpPacket(number, header, payload, ip, port, packetsInPayload):
     for i in range(number):
         packet = header.version
         packet.append(header.padFlag)
@@ -12,11 +12,12 @@ def SendRtpPacket(number, header, payload, ip, port):
         packet.append(BitArray(uint = header.seqNumber, length = 16))
         packet.append(BitArray(uint = header.timestamp, length = 32))
         packet.append(header.ssrc)
-        #print(len(packet.bin))
+        print(len(packet.bin))
         header.next()
-        packet.append(BitArray(bin = payload))
-        #print(len(packet.bin))
-
+        for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
+            payload.takeMp3Frame()
+            packet.append(BitArray(bin = payload.frame))
+        print(len(packet.bin))
         my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         my_socket.connect((ip, port))
         prueba = packet.tobytes()
@@ -82,7 +83,7 @@ class RtpHeader:
     def setCsrcCount(self, cc):
         self.cc = BitArray(uint = cc, length = 4)
 
-    def setMarket(self, marker):
+    def setMarker(self, marker):
         self.marker = BitArray(uint = marker, length = 1)
 
     def setPayloadType(self, payloadType):
