@@ -12,7 +12,7 @@ def SendRtpPacket(number, header, payload, ip, port, packetsInPayload):
         packet.append(BitArray(uint = header.seqNumber, length = 16))
         packet.append(BitArray(uint = header.timestamp, length = 32))
         packet.append(header.ssrc)
-        print(len(packet.bin))
+        print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
         header.next()
         for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
             payload.takeMp3Frame()

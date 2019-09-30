@@ -64,3 +64,8 @@ https://tools.ietf.org/html/rfc5219#section-4.4 mp3 en rtp
 https://wiki.python.org/moin/HowTo/Sockets SOCKETS
 
 me responden?? https://stackoverflow.com/questions/58097580/rtp-packet-maximum-size
+
+https://osqa-ask.wireshark.org/questions/50795/wireshark-2-missing-option-to-try-to-decode-rtp-outside-of-conversation
+ver rtp en wireshark
+
+https://stackoverflow.com/questions/40448937/socket-recv-buffer-size/40449014
