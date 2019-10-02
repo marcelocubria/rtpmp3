@@ -1,28 +1,35 @@
 from bitstring import BitArray
 import socket
+import random
 
 def SendRtpPacket(number, header, payload, ip, port, packetsInPayload):
-    for i in range(number):
-        packet = header.version
-        packet.append(header.padFlag)
-        packet.append(header.extFlag)
-        packet.append(header.cc)
-        packet.append(header.marker)
-        packet.append(header.payloadType)
-        packet.append(BitArray(uint = header.seqNumber, length = 16))
-        packet.append(BitArray(uint = header.timestamp, length = 32))
-        packet.append(header.ssrc)
-        print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
-        header.next()
-        for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
-            payload.takeMp3Frame()
-            packet.append(BitArray(bin = payload.frame))
-        print(len(packet.bin))
-        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        my_socket.connect((ip, port))
-        prueba = packet.tobytes()
-        my_socket.send(prueba) #parece enviar todo correctamente comparados primeros 92 bits y ok
-        print(packet[0:92].bin)
+    if (number == 0):
+        number = 1000000
+    try:
+        for i in range(number):
+            packet = BitArray();
+            packet.append(header.version)
+            packet.append(header.padFlag)
+            packet.append(header.extFlag)
+            packet.append(header.cc)
+            packet.append(header.marker)
+            packet.append(header.payloadType)
+            packet.append(BitArray(uint = header.seqNumber, length = 16))
+            packet.append(BitArray(uint = header.timestamp, length = 32))
+            packet.append(header.ssrc)
+            print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
+            for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
+                payload.takeMp3Frame()
+                packet.append(BitArray(bin = payload.frame))
+            print(len(packet.bin))
+            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            my_socket.connect((ip, port))
+            prueba = packet.tobytes()
+            my_socket.send(prueba) #parece enviar todo correctamente comparados primeros 92 bits y ok
+            print(packet[0:92].bin)
+            header.next(payload.frameTimeMs)
+    except:
+        pass
 
 class RtpPayloadMp3: # En principio para MP3
 
@@ -49,11 +56,17 @@ class RtpPayloadMp3: # En principio para MP3
         original = header[29];
         emphasis = header[30:];
 
-        frameLength = int(144 * 8 * (224000/32000)) # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
+        if (version == '11'):
+            if (bitrate == '1100'):
+                bps = 224000
+            if (sampling == '10'):
+                sampleRate = 32000
+
+        frameLength = int(144 * 8 * (bps/sampleRate)) # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
+        self.frameTimeMs = int(144/sampleRate * 1000 * 8) # tiempo por frame en milisegundos
         nextmp3HeaderIndex = self.headerIndex + frameLength;
         self.frame = self.bits[self.headerIndex:nextmp3HeaderIndex]
         self.headerIndex = nextmp3HeaderIndex
-        print(len(self.frame))
 
 
 class RtpHeader:
@@ -68,8 +81,8 @@ class RtpHeader:
         self.ssrc = BitArray(uint = ssrc, length = 32)
 
     def __init__(self):
-        self.seqNumber = 1000 # Aleatorio
-        self.timestamp = 200 # Aleatorio
+        self.seqNumber = random.randint(1,10000) # Aleatorio
+        self.timestamp = random.randint(1,10000) # Aleatorio
 
     def setVersion(self, version):
         self.version = BitArray(uint = version, length = 2)
@@ -98,9 +111,11 @@ class RtpHeader:
     def setSSRC(self, ssrc):
         self.ssrc = BitArray(uint = ssrc, length = 32)
 
-    def next(self):
+    def next(self, frameTimeMs):
         self.seqNumber += 1;
-        self.timestamp += 100; # Calcular siguiente timestamp
+        print('timestamp antes: ' + str(self.timestamp))
+        self.timestamp += int(8000 * (frameTimeMs/1000)); # Calcular siguiente timestamp
+        print('timestamp despues: ' + str(self.timestamp))
 
 if __name__== "__main__":
     a = RtpHeader()

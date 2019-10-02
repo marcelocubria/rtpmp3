@@ -12,3 +12,5 @@ data, addr = sock.recvfrom(4096) # buffer size is 1024 bytes
 
 respuesta = BitArray(data).bin
 print(respuesta[0:92])
+
+data, addr = sock.recvfrom(4096) # buffer size is 1024 bytes

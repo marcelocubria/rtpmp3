@@ -43,7 +43,7 @@ timestamp = timestamp anterior + 160
 https://stackoverflow.com/questions/24658525/how-to-calculate-the-rtp-timestamp-for-each-packet-in-an-audio-stream
 https://stackoverflow.com/questions/6220660/calculating-the-length-of-mp3-frames-in-milliseconds
 
-otra manera del frimesize http://id3.org/mp3Frame
+otra manera del framesize http://id3.org/mp3Frame
 FrameSize = 144 * BitRate / SampleRate
 porque es 144? es en bytes https://stackoverflow.com/questions/57103676/formula-from-mp3-frame-length
 
