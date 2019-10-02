@@ -97,6 +97,21 @@ def takeFrame(bits, headerIndex):
     print(headerIndex)
     print("frame data starts " + str(frameDataStarts))
 
+
+class RtpPayloadMp3: # En principio para MP3
+
+    def setAudio(self, filePath):
+        with open (filePath, "rb") as file:
+            bytes = file.read();
+            self.bits = BitArray(bytes).bin;
+            riff = BitArray(hex='0x52494646').bin
+            self.headerIndex = self.bits.find(riff)
+
+    def takeMp3Frame(self):
+
+        frameSize = self.bits[self.headerIndex+32:self.headerIndex+64]
+        
+
 if __name__== "__main__":
     with open ("archivo.mp3", "rb") as file: # Abro archivo en modo lectura y binario
 

@@ -69,3 +69,7 @@ https://osqa-ask.wireshark.org/questions/50795/wireshark-2-missing-option-to-try
 ver rtp en wireshark
 
 https://stackoverflow.com/questions/40448937/socket-recv-buffer-size/40449014
+
+
+formato WAV https://www.isip.piconepress.com/projects/speech/software/tutorials/production/fundamentals/v1.0/section_02/s02_01_p05.html
+            http://tiny.systems/software/soundProgrammer/WavFormatDocs.pdf

@@ -17,6 +17,7 @@ def SendRtpPacket(number, header, payload, ip, port, packetsInPayload):
             packet.append(BitArray(uint = header.seqNumber, length = 16))
             packet.append(BitArray(uint = header.timestamp, length = 32))
             packet.append(header.ssrc)
+            packet.append(header.csrc)
             print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
             for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
                 payload.takeMp3Frame()
@@ -79,6 +80,7 @@ class RtpHeader:
         self.marker = BitArray(uint = marker, length = 1)
         self.payloadType = BitArray(uint = payloadType, length = 7)
         self.ssrc = BitArray(uint = ssrc, length = 32)
+        self.csrc = BitArray()
 
     def __init__(self):
         self.seqNumber = random.randint(1,10000) # Aleatorio
@@ -111,11 +113,15 @@ class RtpHeader:
     def setSSRC(self, ssrc):
         self.ssrc = BitArray(uint = ssrc, length = 32)
 
+    def setCSRC(self, csrcValues):
+        for i in range(len(csrcValues)):
+            self.csrc.append(BitArray(uint = csrcValues[i], length = 32))
+
+
     def next(self, frameTimeMs):
         self.seqNumber += 1;
-        print('timestamp antes: ' + str(self.timestamp))
+        # he leido en wikipedia que en vez de 8k podria ser 90k???
         self.timestamp += int(8000 * (frameTimeMs/1000)); # Calcular siguiente timestamp
-        print('timestamp despues: ' + str(self.timestamp))
 
 if __name__== "__main__":
     a = RtpHeader()
