@@ -73,3 +73,16 @@ https://stackoverflow.com/questions/40448937/socket-recv-buffer-size/40449014
 
 formato WAV https://www.isip.piconepress.com/projects/speech/software/tutorials/production/fundamentals/v1.0/section_02/s02_01_p05.html
             http://tiny.systems/software/soundProgrammer/WavFormatDocs.pdf
+
+
+
+
+
+
+publicarlo en github
+epydoc para documentarlo
+guia de estilo pep8
+variables y funciones a no tocar con _ delante
+poner en readme dependencias
+verbose o debug para print en consola
+abrir socket con with fuera del bucle formato

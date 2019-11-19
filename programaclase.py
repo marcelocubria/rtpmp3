@@ -16,7 +16,7 @@ if __name__== "__main__":
     cabeceraRTP.setCSRC(csrc)
     audio = simplertp.RtpPayloadMp3()
     audio.setAudio('archivo.mp3')
-    numeroPaquetesRTP = 2
+    numeroPaquetesRTP = 0
     paquetesMP3porRTP = 2
     ip = '127.0.0.1'
     port = 33332

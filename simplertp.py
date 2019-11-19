@@ -18,6 +18,8 @@ def SendRtpPacket(number, header, payload, ip, port, packetsInPayload):
             packet.append(BitArray(uint = header.timestamp, length = 32))
             packet.append(header.ssrc)
             packet.append(header.csrc)
+            if header.extFlag.bin == '1':
+                print('aqui va la extension')
             print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
             for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
                 payload.takeMp3Frame()
@@ -29,7 +31,7 @@ def SendRtpPacket(number, header, payload, ip, port, packetsInPayload):
             my_socket.send(prueba) #parece enviar todo correctamente comparados primeros 92 bits y ok
             print(packet[0:92].bin)
             header.next(payload.frameTimeMs)
-    except:
+    except IndexError:
         pass
 
 class RtpPayloadMp3: # En principio para MP3
@@ -57,11 +59,18 @@ class RtpPayloadMp3: # En principio para MP3
         original = header[29];
         emphasis = header[30:];
 
-        if (version == '11'):
+        if (version == '11') and (layer == '01'):
             if (bitrate == '1100'):
                 bps = 224000
+
+
             if (sampling == '10'):
                 sampleRate = 32000
+            elif sampling == '00':
+                sampleRate = 44100
+            elif sampling == '01':
+                sampleRate = 48000
+
 
         frameLength = int(144 * 8 * (bps/sampleRate)) # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
         self.frameTimeMs = int(144/sampleRate * 1000 * 8) # tiempo por frame en milisegundos
@@ -81,6 +90,7 @@ class RtpHeader:
         self.payloadType = BitArray(uint = payloadType, length = 7)
         self.ssrc = BitArray(uint = ssrc, length = 32)
         self.csrc = BitArray()
+        self.extension = BitArray()
 
     def __init__(self):
         self.seqNumber = random.randint(1,10000) # Aleatorio
@@ -116,7 +126,6 @@ class RtpHeader:
     def setCSRC(self, csrcValues):
         for i in range(len(csrcValues)):
             self.csrc.append(BitArray(uint = csrcValues[i], length = 32))
-
 
     def next(self, frameTimeMs):
         self.seqNumber += 1;
