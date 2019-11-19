@@ -3,36 +3,36 @@ import socket
 import random
 
 def SendRtpPacket(number, header, payload, ip, port, packetsInPayload):
-    if (number == 0):
-        number = 1000000
-    try:
-        for i in range(number):
-            packet = BitArray();
-            packet.append(header.version)
-            packet.append(header.padFlag)
-            packet.append(header.extFlag)
-            packet.append(header.cc)
-            packet.append(header.marker)
-            packet.append(header.payloadType)
-            packet.append(BitArray(uint = header.seqNumber, length = 16))
-            packet.append(BitArray(uint = header.timestamp, length = 32))
-            packet.append(header.ssrc)
-            packet.append(header.csrc)
-            if header.extFlag.bin == '1':
-                print('aqui va la extension')
-            print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
-            for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
-                payload.takeMp3Frame()
-                packet.append(BitArray(bin = payload.frame))
-            print(len(packet.bin))
-            my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            my_socket.connect((ip, port))
-            prueba = packet.tobytes()
-            my_socket.send(prueba) #parece enviar todo correctamente comparados primeros 92 bits y ok
-            print(packet[0:92].bin)
-            header.next(payload.frameTimeMs)
-    except IndexError:
-        pass
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as my_socket:
+        my_socket.connect((ip, port))
+        if (number == 0):
+            number = 1000000
+        try:
+            for i in range(number):
+                packet = BitArray();
+                packet.append(header.version)
+                packet.append(header.padFlag)
+                packet.append(header.extFlag)
+                packet.append(header.cc)
+                packet.append(header.marker)
+                packet.append(header.payloadType)
+                packet.append(BitArray(uint = header.seqNumber, length = 16))
+                packet.append(BitArray(uint = header.timestamp, length = 32))
+                packet.append(header.ssrc)
+                packet.append(header.csrc)
+                if header.extFlag.bin == '1':
+                    print('aqui va la extension')
+                print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
+                for j in range(packetsInPayload): # Cuantos paquetes mp3 metemos en el mismo paquete RTP
+                    payload.takeMp3Frame()
+                    packet.append(BitArray(bin = payload.frame))
+                print(len(packet.bin))
+                packetBytes = packet.tobytes()
+                my_socket.send(packetBytes) #parece enviar todo correctamente comparados primeros 92 bits y ok
+                print(packet[0:92].bin)
+                header.next(payload.frameTimeMs)
+        except IndexError:
+            pass
 
 class RtpPayloadMp3: # En principio para MP3
 
