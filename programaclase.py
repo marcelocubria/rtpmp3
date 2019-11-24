@@ -12,12 +12,12 @@ if __name__== "__main__":
     payloadType = 90
     ssrc = 1000
     csrc = [2000, 3000, 4000, 5000]
-    cabeceraRTP.setHeader(version, paddingFlag, extFlag, numeroCSRC, marker, payloadType, ssrc)
+    cabeceraRTP.set_header(version, paddingFlag, extFlag, numeroCSRC, marker, payloadType, ssrc)
     cabeceraRTP.setCSRC(csrc)
     audio = simplertp.RtpPayloadMp3()
-    audio.setAudio('archivo.mp3')
+    audio.set_audio('archivo.mp3')
     numeroPaquetesRTP = 100
     paquetesMP3porRTP = 2
     ip = '127.0.0.1'
     port = 33332
-    simplertp.SendRtpPacket(numeroPaquetesRTP, cabeceraRTP, audio, ip, port, paquetesMP3porRTP)
+    simplertp.send_rtp_packet(numeroPaquetesRTP, cabeceraRTP, audio, ip, port, paquetesMP3porRTP)
