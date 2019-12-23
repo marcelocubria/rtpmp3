@@ -2,12 +2,18 @@ from bitstring import BitArray
 import socket
 import random
 
+_bps_dict = {'0001': 32000, '0010': 40000, '0011': 48000, '0100':56000,
+            '0101': 64000, '0110': 80000, '0111': 96000, '1000': 112000,
+            '1001': 128000, '1010': 160000, '1011': 192000, '1100': 224000,
+            '1101': 256000, '1110': 320000}
+
+_sample_rate_dict = {'00': 44100, '01': 48000, '10': 32000}
 
 def send_rtp_packet(number, header, payload, ip, port, packets_in_payload):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as my_socket:
         my_socket.connect((ip, port))
         if (number == 0):
-            number = 1000000
+            number = 100000000
         try:
             for i in range(number):
                 packet = BitArray()
@@ -24,14 +30,13 @@ def send_rtp_packet(number, header, payload, ip, port, packets_in_payload):
                 if header.ext_flag.bin == '1':
                     print('aqui va la extension')
                 print('Tamaño de la cabecera RTP: ' + str(len(packet.bin)))
-                for j in range(packets_in_payload):  # Cuantos paquetes mp3 metemos en el mismo paquete RTP
+                # Cuantos paquetes mp3 metemos en el mismo paquete RTP
+                for j in range(packets_in_payload):
                     payload._take_mp3_frame()
                     packet.append(BitArray(bin = payload.frame))
-                print(len(packet.bin))
                 packetBytes = packet.tobytes()
-                my_socket.send(packetBytes)  # parece enviar todo correctamente comparados primeros 92 bits y ok
-                print(packet[0:92].bin)
-                header.next(payload.frameTimeMs)
+                my_socket.send(packetBytes)
+                header._next(payload.frameTimeMs)
         except IndexError:
             pass
 
@@ -61,19 +66,14 @@ class RtpPayloadMp3:  # En principio para MP3
         original = header[29]
         emphasis = header[30:]
 
-        if (version == '11') and (layer == '01'):
-            if (bitrate == '1100'):
-                bps = 224000
+        # Se asume que es version 1 layer 3 (mp3)
+        bps = _bps_dict[bitrate]
+        sample_rate = _sample_rate_dict[sampling]
 
-            if (sampling == '10'):
-                sample_rate = 32000
-            elif sampling == '00':
-                sample_rate = 44100
-            elif sampling == '01':
-                sample_rate = 48000
-
-        frame_length = int(144 * 8 * (bps/sample_rate))  # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
-        self.frameTimeMs = int(144/sample_rate * 1000 * 8)  # tiempo por frame en milisegundos
+        # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
+        frame_length = int(144 * 8 * (bps/sample_rate))
+        # tiempo por frame en milisegundos
+        self.frameTimeMs = int(144/sample_rate * 1000 * 8)
         next_mp3_header_index = self.header_index + frame_length
         self.frame = self.bits[self.header_index:next_mp3_header_index]
         self.header_index = next_mp3_header_index
@@ -81,7 +81,11 @@ class RtpPayloadMp3:  # En principio para MP3
 
 class RtpHeader:
 
-    def set_header(self, version, pad_flag, ext_flag, cc, marker, payload_type, ssrc):
+    def __init__(self):
+        self.seq_number = random.randint(1, 10000)  # Aleatorio
+        self.timestamp = random.randint(1, 10000)  # Aleatorio
+
+    def set_header(self, version=2, pad_flag=0, ext_flag=0, cc=1000, marker=0, payload_type=90, ssrc=0):
         self.version = BitArray(uint = version, length = 2)
         self.pad_flag = BitArray(uint = pad_flag, length = 1)
         self.ext_flag = BitArray(uint = ext_flag, length = 1)
@@ -90,29 +94,27 @@ class RtpHeader:
         self.payload_type = BitArray(uint = payload_type, length = 7)
         self.ssrc = BitArray(uint = ssrc, length = 32)
         self.csrc = BitArray()
-        self.extension = BitArray()
 
-    def __init__(self):
-        self.seq_number = random.randint(1, 10000)  # Aleatorio
-        self.timestamp = random.randint(1, 10000)  # Aleatorio
-
-    def setVersion(self, version):
-        self.version = BitArray(uint = version, length = 2)
-
-    def setPaddingFlag(self, pad_flag):
-        self.pad_flag = BitArray(uint = pad_flag, length = 1)
-
-    def setExtensionFlag(self, ext_flag):
-        self.ext_flag = BitArray(uint = ext_flag, length = 1)
-
-    def setCsrcCount(self, cc):
-        self.cc = BitArray(uint = cc, length = 4)
-
-    def setMarker(self, marker):
-        self.marker = BitArray(uint = marker, length = 1)
-
-    def setPayloadType(self, payload_type):
-        self.payload_type = BitArray(uint = marker, length = 7)
+    # def setVersion(self, version):
+    #     self.version = BitArray(uint = version, length = 2)
+    #
+    # def setPaddingFlag(self, pad_flag):
+    #     self.pad_flag = BitArray(uint = pad_flag, length = 1)
+    #
+    # def setExtensionFlag(self, ext_flag):
+    #     self.ext_flag = BitArray(uint = ext_flag, length = 1)
+    #
+    # def setCsrcCount(self, cc):
+    #     self.cc = BitArray(uint = cc, length = 4)
+    #
+    # def setMarker(self, marker):
+    #     self.marker = BitArray(uint = marker, length = 1)
+    #
+    # def setPayloadType(self, payload_type):
+    #     self.payload_type = BitArray(uint = marker, length = 7)
+    #
+    # def setSSRC(self, ssrc):
+    #     self.ssrc = BitArray(uint = ssrc, length = 32)
 
     def setSequenceNumber(self, seq_number):
         self.seq_number = seq_number
@@ -120,20 +122,15 @@ class RtpHeader:
     def setTimestamp(self, timestamp):
         self.timestamp = timestamp
 
-    def setSSRC(self, ssrc):
-        self.ssrc = BitArray(uint = ssrc, length = 32)
-
     def setCSRC(self, csrcValues):
         for i in range(len(csrcValues)):
             self.csrc.append(BitArray(uint = csrcValues[i], length = 32))
 
-    def next(self, frameTimeMs):
+    def _next(self, frameTimeMs):
         self.seq_number += 1
-        # he leido en wikipedia que en vez de 8k podria ser 90k???
-        self.timestamp += int(8000 * (frameTimeMs/1000))  # Calcular siguiente timestamp
+        # Calcular siguiente timestamp
+        self.timestamp += int(8000 * (frameTimeMs/1000))
 
 
 if __name__ == "__main__":
-    a = RtpHeader()
-    a.setVersion(2)
-    a.setPaddingFlag(1)
+    print("main function")
