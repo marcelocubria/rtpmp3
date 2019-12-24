@@ -85,7 +85,7 @@ class RtpHeader:
         self.seq_number = random.randint(1, 10000)  # Aleatorio
         self.timestamp = random.randint(1, 10000)  # Aleatorio
 
-    def set_header(self, version=2, pad_flag=0, ext_flag=0, cc=1000, marker=0, payload_type=90, ssrc=0):
+    def set_header(self, version=2, pad_flag=0, ext_flag=0, cc=0, marker=0, payload_type=90, ssrc=1000):
         self.version = BitArray(uint = version, length = 2)
         self.pad_flag = BitArray(uint = pad_flag, length = 1)
         self.ext_flag = BitArray(uint = ext_flag, length = 1)
