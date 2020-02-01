@@ -7,9 +7,18 @@ _bps_dict = {'0001': 32000, '0010': 40000, '0011': 48000, '0100':56000,
             '1001': 128000, '1010': 160000, '1011': 192000, '1100': 224000,
             '1101': 256000, '1110': 320000}
 
+_bps_dict_2 = {'0001': 8000, '0010': 16000, '0011': 24000, '0100': 32000,
+            '0101': 40000, '0110': 48000, '0111': 56000, '1000': 64000,
+            '1001': 80000, '1010': 96000, '1011': 112000, '1100': 128000,
+            '1101': 144000, '1110': 160000}
+
 _sample_rate_dict = {'00': 44100, '01': 48000, '10': 32000}
 
-def send_rtp_packet(number, header, payload, ip, port, packets_in_payload):
+_sample_rate_dict_25 = {'00': 11025, '01': 12000, '10': 8000}
+
+_sample_rate_dict_2 = {'00': 22050, '01': 24000, '10': 16000}
+
+def send_rtp_packet(header, payload, ip, port, packets_in_payload = 2, number = 0):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as my_socket:
         my_socket.connect((ip, port))
         if (number == 0):
@@ -34,6 +43,7 @@ def send_rtp_packet(number, header, payload, ip, port, packets_in_payload):
                 for j in range(packets_in_payload):
                     payload._take_mp3_frame()
                     packet.append(BitArray(bin = payload.frame))
+                    print(payload.frame[0:32])
                 packetBytes = packet.tobytes()
                 my_socket.send(packetBytes)
                 header._next(payload.frameTimeMs)
@@ -43,7 +53,7 @@ def send_rtp_packet(number, header, payload, ip, port, packets_in_payload):
 
 class RtpPayloadMp3:  # En principio para MP3
 
-    def set_audio(self, file_path):
+    def __init__(self, file_path):
         with open(file_path, "rb") as file:
             bytes = file.read()
             self.bits = BitArray(bytes).bin
@@ -67,8 +77,15 @@ class RtpPayloadMp3:  # En principio para MP3
         emphasis = header[30:]
 
         # Se asume que es version 1 layer 3 (mp3)
-        bps = _bps_dict[bitrate]
-        sample_rate = _sample_rate_dict[sampling]
+        if version == '11':
+            bps = _bps_dict[bitrate]
+            sample_rate = _sample_rate_dict[sampling]
+        elif version == '00':
+            bps = _bps_dict_2[bitrate]
+            sample_rate = _sample_rate_dict_25[sampling]
+        elif version == '10':
+            bps = _bps_dict_2[bitrate]
+            sample_rate = _sample_rate_dict_2[sampling]
 
         # 144 * bit rate / sample rate * 8 (el 144 es en bytes)
         frame_length = int(144 * 8 * (bps/sample_rate))
@@ -81,11 +98,12 @@ class RtpPayloadMp3:  # En principio para MP3
 
 class RtpHeader:
 
-    def __init__(self):
+    def __init__(self, version=2, pad_flag=0, ext_flag=0, cc=0, marker=0, payload_type=14, ssrc=1000):
         self.seq_number = random.randint(1, 10000)  # Aleatorio
         self.timestamp = random.randint(1, 10000)  # Aleatorio
+        self.set_header(version, pad_flag, ext_flag, cc, marker, payload_type, ssrc)
 
-    def set_header(self, version=2, pad_flag=0, ext_flag=0, cc=0, marker=0, payload_type=90, ssrc=1000):
+    def set_header(self, version=2, pad_flag=0, ext_flag=0, cc=0, marker=0, payload_type=14, ssrc=1000):
         self.version = BitArray(uint = version, length = 2)
         self.pad_flag = BitArray(uint = pad_flag, length = 1)
         self.ext_flag = BitArray(uint = ext_flag, length = 1)
@@ -95,26 +113,26 @@ class RtpHeader:
         self.ssrc = BitArray(uint = ssrc, length = 32)
         self.csrc = BitArray()
 
-    # def setVersion(self, version):
-    #     self.version = BitArray(uint = version, length = 2)
-    #
-    # def setPaddingFlag(self, pad_flag):
-    #     self.pad_flag = BitArray(uint = pad_flag, length = 1)
-    #
-    # def setExtensionFlag(self, ext_flag):
-    #     self.ext_flag = BitArray(uint = ext_flag, length = 1)
-    #
-    # def setCsrcCount(self, cc):
-    #     self.cc = BitArray(uint = cc, length = 4)
-    #
-    # def setMarker(self, marker):
-    #     self.marker = BitArray(uint = marker, length = 1)
-    #
-    # def setPayloadType(self, payload_type):
-    #     self.payload_type = BitArray(uint = marker, length = 7)
-    #
-    # def setSSRC(self, ssrc):
-    #     self.ssrc = BitArray(uint = ssrc, length = 32)
+    def setVersion(self, version):
+        self.version = BitArray(uint = version, length = 2)
+
+    def setPaddingFlag(self, pad_flag):
+        self.pad_flag = BitArray(uint = pad_flag, length = 1)
+
+    def setExtensionFlag(self, ext_flag):
+        self.ext_flag = BitArray(uint = ext_flag, length = 1)
+
+    def setCsrcCount(self, cc):
+        self.cc = BitArray(uint = cc, length = 4)
+
+    def setMarker(self, marker):
+        self.marker = BitArray(uint = marker, length = 1)
+
+    def setPayloadType(self, payload_type):
+        self.payload_type = BitArray(uint = marker, length = 7)
+
+    def setSSRC(self, ssrc):
+        self.ssrc = BitArray(uint = ssrc, length = 32)
 
     def setSequenceNumber(self, seq_number):
         self.seq_number = seq_number
